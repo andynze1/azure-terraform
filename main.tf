@@ -5,6 +5,7 @@ terraform {
       version = "3.111.0"
     }
   }
+
 }
 
 # Resource Group
