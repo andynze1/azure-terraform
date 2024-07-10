@@ -15,13 +15,13 @@ resource "azurerm_resource_group" "myresource-group01" {
 }
 
 # Virtial network - VPC
-resource "azurerm_virtual_network" "dml-vpn" {
+resource "azurerm_virtual_network" "dml-VirtualNetwork" {
   name                = var.virtual_network.name
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
   address_space       = var.virtual_network.address_space
   tags = {
-    environment = "Production"
+    environment = "DML-Virtual-Private-Network"
   }
   depends_on = [azurerm_resource_group.myresource-group01]
 }
@@ -29,18 +29,22 @@ resource "azurerm_virtual_network" "dml-vpn" {
 resource "azurerm_subnet" "public-subnet" {
   name                 = var.subnets[0].name
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.dml-vpn.name
+  virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
   address_prefixes     = [var.subnets[0].address_prefix]
-  depends_on           = [azurerm_virtual_network.dml-vpn]
+  depends_on           = [
+    azurerm_virtual_network.dml-VirtualNetwork
+  ]
 }
 
 # Private Subnet
 resource "azurerm_subnet" "private-subnet" {
   name                 = var.subnets[1].name
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.dml-vpn.name
+  virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
   address_prefixes     = [var.subnets[1].address_prefix]
-  depends_on           = [azurerm_virtual_network.dml-vpn]
+  depends_on           = [
+    azurerm_virtual_network.dml-VirtualNetwork
+  ]
 }
 
 
@@ -50,11 +54,12 @@ resource "azurerm_public_ip" "dml-public-ip" {
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
   allocation_method   = "Dynamic"
+  depends_on = [ azurerm_virtual_network.dml-VirtualNetwork ]
 }
 
 # Network interface
-resource "azurerm_network_interface" "dml-nic" {
-  name                = "dml-nic"
+resource "azurerm_network_interface" "dml-network-interface" {
+  name                = "dml-network-interface"
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
 
@@ -64,7 +69,9 @@ resource "azurerm_network_interface" "dml-nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.dml-public-ip.id
   }
-  depends_on = [azurerm_subnet.public-subnet]
+  depends_on = [
+    azurerm_subnet.public-subnet
+  ]
 }
 
 # Security Groups
@@ -72,7 +79,6 @@ resource "azurerm_network_security_group" "dml-security-group" {
   name                = "dml-security-group"
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
-
   dynamic "security_rule" {
     for_each = {
       "SSH"        = { priority = 1001, destination_port_range = "22" },
@@ -93,15 +99,16 @@ resource "azurerm_network_security_group" "dml-security-group" {
       destination_address_prefix = "*"
     }
   }
+  depends_on = [ azurerm_virtual_network.dml-VirtualNetwork ]
 }
 
 resource "azurerm_network_interface_security_group_association" "networksgass" {
-  network_interface_id      = azurerm_network_interface.dml-nic.id
+  network_interface_id      = azurerm_network_interface.dml-network-interface.id
   network_security_group_id = azurerm_network_security_group.dml-security-group.id
 }
 
 # Storage Account
-resource "azurerm_storage_account" "appstorage" {
+resource "azurerm_storage_account" "appstorage1984" {
   name                     = "appstorage1984"
   resource_group_name      = var.resource_group_name
   location                 = var.resource_group_location
@@ -114,13 +121,13 @@ resource "azurerm_storage_account" "appstorage" {
 # Storage Container
 resource "azurerm_storage_container" "appfolder01" {
   name                 = "appfolder01"
-  storage_account_name = azurerm_storage_account.appstorage.name
-  depends_on           = [azurerm_storage_account.appstorage]
+  storage_account_name = azurerm_storage_account.appstorage1984.name
+  depends_on           = [azurerm_storage_account.appstorage1984]
 }
 
 # Virtual Machine - EC2
-resource "azurerm_linux_virtual_machine" "Jenkins-Server" {
-  name                = "Jenkins-Server"
+resource "azurerm_linux_virtual_machine" "jenkins-server" {
+  name                = "jenkins-server"
   resource_group_name = var.resource_group_name
   location            = var.resource_group_location
   size                = "Standard_D4s_v3"
@@ -131,7 +138,7 @@ resource "azurerm_linux_virtual_machine" "Jenkins-Server" {
   }
 
   network_interface_ids = [
-    azurerm_network_interface.dml-nic.id,
+    azurerm_network_interface.dml-network-interface.id,
   ]
 
   os_disk {
@@ -147,14 +154,15 @@ resource "azurerm_linux_virtual_machine" "Jenkins-Server" {
   }
 
   custom_data = filebase64("install.sh")
-  depends_on  = [azurerm_network_interface.dml-nic]
+  depends_on  = [azurerm_network_interface.dml-network-interface]
 }
+
 
 # vars {
 #   resource_group_name="myresource-group01"
 #   resource_group_location="East US"
 #   virtual_network={
-#     name="dml-vpn"
+#     name="dml-VirtualNetwork"
 #     address_space=["10.0.0.0/16"]
 #   }
 #   subnets=[

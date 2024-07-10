@@ -42,7 +42,7 @@ variable "virtual_network" {
     address_space = list(string)
   })
   default = {
-    name          = "dml-vpn"
+    name          = "dml-VirtualNetwork"
     address_space = ["10.0.0.0/16"]
   }
 }
