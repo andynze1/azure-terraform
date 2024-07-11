@@ -35,6 +35,12 @@ variable "resource_group_location" {
   default     = "East US"
 }
 
+variable "azurerm_public_ip" {
+  description = "Pubic IP Address"
+  type        = string
+  default     = "public-ip"
+}
+
 variable "virtual_network" {
   description = "Virtual network configuration"
   type = object({
@@ -47,20 +53,44 @@ variable "virtual_network" {
   }
 }
 
-variable "subnets" {
-  description = "Subnets configuration"
-  type = list(object({
+variable "public_subnet" {
+  description = "Public Subnet"
+  type = object({
     name           = string
     address_prefix = string
-  }))
-  default = [
-    {
-      name           = "public_subnet"
-      address_prefix = "10.0.0.0/24"
-    },
-    {
-      name           = "private_subnet"
-      address_prefix = "10.0.1.0/24"
-    }
-  ]
+  })
+  default = {
+    name           = "public_subnet"
+    address_prefix = "10.0.0.0/24"
+  }
 }
+
+variable "private_subnet" {
+  description = "Private Subnet"
+  type = object({
+    name           = string
+    address_prefix = string
+  })
+  default = {
+    name           = "private_subnet"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+
+# variable "subnets" {
+#   description = "Subnets configuration"
+#   type = list(object({
+#     name           = string
+#     address_prefix = string
+#   }))
+#   default = [
+#     {
+#       name           = "public_subnet"
+#       address_prefix = "10.0.0.0/24"
+#     },
+#     {
+#       name           = "private_subnet"
+#       address_prefix = "10.0.1.0/24"
+#     }
+#   ]
+# }

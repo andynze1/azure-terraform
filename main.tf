@@ -25,36 +25,32 @@ resource "azurerm_virtual_network" "dml-VirtualNetwork" {
   }
   depends_on = [azurerm_resource_group.myresource-group01]
 }
+
 # Public Subnet
 resource "azurerm_subnet" "public-subnet" {
-  name                 = var.subnets[0].name
+  name                 = var.public_subnet.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
-  address_prefixes     = [var.subnets[0].address_prefix]
-  depends_on           = [
-    azurerm_virtual_network.dml-VirtualNetwork
-  ]
+  address_prefixes     = [var.public_subnet.address_prefix]
+  depends_on           = [azurerm_virtual_network.dml-VirtualNetwork]
 }
 
 # Private Subnet
 resource "azurerm_subnet" "private-subnet" {
-  name                 = var.subnets[1].name
+  name                 = var.private_subnet.name
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
-  address_prefixes     = [var.subnets[1].address_prefix]
-  depends_on           = [
-    azurerm_virtual_network.dml-VirtualNetwork
-  ]
+  address_prefixes     = [var.private_subnet.address_prefix]
+  depends_on           = [azurerm_virtual_network.dml-VirtualNetwork]
 }
 
-
 # Public IP address
-resource "azurerm_public_ip" "dml-public-ip" {
-  name                = "dml-public-ip"
+resource "azurerm_public_ip" "public-ip" {
+  name                = var.azurerm_public_ip
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
   allocation_method   = "Dynamic"
-  depends_on = [ azurerm_virtual_network.dml-VirtualNetwork ]
+  depends_on          = [azurerm_virtual_network.dml-VirtualNetwork]
 }
 
 # Network interface
@@ -67,62 +63,18 @@ resource "azurerm_network_interface" "dml-network-interface" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.public-subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.dml-public-ip.id
+    public_ip_address_id          = azurerm_public_ip.public-ip.id
   }
-  depends_on = [
-    azurerm_subnet.public-subnet
-  ]
+  depends_on = [azurerm_subnet.public-subnet]
 }
 
 # Security Groups
-resource "azurerm_network_security_group" "dml-security-group" {
-  name                = "dml-security-group"
-  location            = var.resource_group_location
-  resource_group_name = var.resource_group_name
-  dynamic "security_rule" {
-    for_each = {
-      "SSH"        = { priority = 1001, destination_port_range = "22" },
-      "HTTP"       = { priority = 1002, destination_port_range = "8080" },
-      "HTTP-8081"  = { priority = 1003, destination_port_range = "8081" },
-      "NEXUS-9000" = { priority = 1004, destination_port_range = "9000" },
-    }
+# resource "azurerm_network_security_group" "dml-security-group" {
 
-    content {
-      name                       = security_rule.key
-      priority                   = security_rule.value.priority
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "Tcp"
-      source_port_range          = "*"
-      destination_port_range     = security_rule.value.destination_port_range
-      source_address_prefix      = "146.85.137.76/32"
-      destination_address_prefix = "*"
-    }
-  }
-  depends_on = [ azurerm_virtual_network.dml-VirtualNetwork ]
-}
-
-resource "azurerm_network_interface_security_group_association" "networksgass" {
+resource "azurerm_network_interface_security_group_association" "networksgasso" {
   network_interface_id      = azurerm_network_interface.dml-network-interface.id
   network_security_group_id = azurerm_network_security_group.dml-security-group.id
-}
-
-# Storage Account
-resource "azurerm_storage_account" "appstorage1984" {
-  name                     = "appstorage1984"
-  resource_group_name      = var.resource_group_name
-  location                 = var.resource_group_location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  depends_on               = [azurerm_resource_group.myresource-group01]
-}
-
-# Storage Container
-resource "azurerm_storage_container" "appfolder01" {
-  name                 = "appfolder01"
-  storage_account_name = azurerm_storage_account.appstorage1984.name
-  depends_on           = [azurerm_storage_account.appstorage1984]
+  depends_on                = [azurerm_network_security_group.dml-security-group]
 }
 
 # Virtual Machine - EC2
@@ -136,16 +88,11 @@ resource "azurerm_linux_virtual_machine" "jenkins-server" {
     username   = "adminuser"
     public_key = file("azure-keypair.pub")
   }
-
-  network_interface_ids = [
-    azurerm_network_interface.dml-network-interface.id,
-  ]
-
+  network_interface_ids = [azurerm_network_interface.dml-network-interface.id]
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
-
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-focal"
@@ -158,21 +105,47 @@ resource "azurerm_linux_virtual_machine" "jenkins-server" {
 }
 
 
-# vars {
-#   resource_group_name="myresource-group01"
-#   resource_group_location="East US"
-#   virtual_network={
-#     name="dml-VirtualNetwork"
-#     address_space=["10.0.0.0/16"]
-#   }
-#   subnets=[
-#     {
-#       name="public_subnet"
-#       address_prefix="10.0.0.0/24"
-#     },
-#     {
-#       name="private_subnet"
-#       address_prefix="10.0.1.0/24"
-#     }
+# # Storage Account
+# resource "azurerm_storage_account" "appstorage1984" {
+#   name                     = "appstorage1984"
+#   resource_group_name      = var.resource_group_name
+#   location                 = var.resource_group_location
+#   account_tier             = "Standard"
+#   account_replication_type = "LRS"
+#   account_kind             = "StorageV2"
+#   depends_on               = [azurerm_resource_group.myresource-group01]
+# }
+
+# # Storage Container
+# resource "azurerm_storage_container" "appfolder01" {
+#   name                 = "appfolder01"
+#   storage_account_name = azurerm_storage_account.appstorage1984.name
+#   depends_on           = [azurerm_storage_account.appstorage1984]
+# }
+
+## Associating SG to subnet ensures all VM under the subnet takes same rules
+# resource "azurerm_subnet_network_security_group_association" "sg-asso" {
+#   subnet_id = azurerm_subnet.public-subnet.id
+#   network_security_group_id = azurerm_network_security_group.dml-security-group.id
+#   depends_on = [
+#     azurerm_network_security_group.dml-security-group
 #   ]
+# }
+
+# Public Subnet
+# resource "azurerm_subnet" "public-subnet" {
+#   name                 = var.subnets[0].name
+#   resource_group_name  = var.resource_group_name
+#   virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
+#   address_prefixes     = [var.subnets[0].address_prefix]
+#   depends_on           = [ azurerm_virtual_network.dml-VirtualNetwork ]
+# }
+
+# # Private Subnet
+# resource "azurerm_subnet" "private-subnet" {
+#   name                 = var.subnets[1].name
+#   resource_group_name  = var.resource_group_name
+#   virtual_network_name = azurerm_virtual_network.dml-VirtualNetwork.name
+#   address_prefixes     = [var.subnets[1].address_prefix]
+#   depends_on           = [ azurerm_virtual_network.dml-VirtualNetwork ]
 # }
