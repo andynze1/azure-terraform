@@ -77,13 +77,19 @@ resource "azurerm_network_interface_security_group_association" "networksgasso" 
   depends_on                = [azurerm_network_security_group.dml-security-group]
 }
 
+resource "azurerm_subnet_network_security_group_association" "subnetasso" {
+  subnet_id                 = azurerm_subnet.public-subnet.id
+  network_security_group_id = azurerm_network_security_group.dml-security-group.id
+}
+
 # Virtual Machine - EC2
 resource "azurerm_linux_virtual_machine" "jenkins-server" {
   name                = "jenkins-server"
   resource_group_name = var.resource_group_name
   location            = var.resource_group_location
-  size                = "Standard_D4s_v3"
+  size                = "Standard_D2s_v3"
   admin_username      = "adminuser"
+  admin_password      = "AndyBest1"
   admin_ssh_key {
     username   = "adminuser"
     public_key = file("azure-keypair.pub")
@@ -101,7 +107,7 @@ resource "azurerm_linux_virtual_machine" "jenkins-server" {
   }
 
   custom_data = filebase64("install.sh")
-  depends_on  = [azurerm_network_interface.dml-network-interface]
+  depends_on  = [azurerm_network_interface.dml-network-interface, azurerm_resource_group.myresource-group01]
 }
 
 

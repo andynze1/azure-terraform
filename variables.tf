@@ -77,6 +77,12 @@ variable "private_subnet" {
   }
 }
 
+variable "my_ip_address" {
+  description = "Your IP address with a /32 subnet mask"
+  type        = string
+  default     = "146.85.137.76/32"  # Replace with your actual IP address
+}
+
 # variable "subnets" {
 #   description = "Subnets configuration"
 #   type = list(object({

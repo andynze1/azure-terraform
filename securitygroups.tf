@@ -4,10 +4,10 @@ resource "azurerm_network_security_group" "dml-security-group" {
   resource_group_name = var.resource_group_name
   dynamic "security_rule" {
     for_each = {
-      "SSH"        = { priority = 1001, destination_port_range = "22" },
-      "HTTP"       = { priority = 1002, destination_port_range = "8080" },
-      "HTTP-8081"  = { priority = 1003, destination_port_range = "8081" },
-      "NEXUS-9000" = { priority = 1004, destination_port_range = "9000" },
+      "SSH_Port_22"         = { priority = 1001, destination_port_range = "22", source_address_prefix = var.my_ip_address },
+      "Jenkins_Port_8080"   = { priority = 1002, destination_port_range = "8080" },
+      "SonarQube_Port_8081" = { priority = 1003, destination_port_range = "8081" },
+      "Nexus_Port_9000"     = { priority = 1004, destination_port_range = "9000" },
     }
     content {
       name                       = security_rule.key
@@ -17,9 +17,12 @@ resource "azurerm_network_security_group" "dml-security-group" {
       protocol                   = "Tcp"
       source_port_range          = "*"
       destination_port_range     = security_rule.value.destination_port_range
-      source_address_prefix      = "*" // "146.85.137.76/32"
+      source_address_prefix      = lookup(security_rule.value, "source_address_prefix", "*")
       destination_address_prefix = "*"
     }
+  }
+  tags = {
+    environment = "Development"
   }
   depends_on = [azurerm_virtual_network.dml-VirtualNetwork]
 }
