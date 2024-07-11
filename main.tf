@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "3.111.0"
-    }
-  }
-
-}
 
 # Resource Group
 resource "azurerm_resource_group" "myresource-group01" {
@@ -81,35 +72,6 @@ resource "azurerm_subnet_network_security_group_association" "subnetasso" {
   subnet_id                 = azurerm_subnet.public-subnet.id
   network_security_group_id = azurerm_network_security_group.dml-security-group.id
 }
-
-# Virtual Machine - EC2
-resource "azurerm_linux_virtual_machine" "jenkins-server" {
-  name                = "jenkins-server"
-  resource_group_name = var.resource_group_name
-  location            = var.resource_group_location
-  size                = "Standard_D2s_v3"
-  admin_username      = "adminuser"
-  admin_password      = "AndyBest1"
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("azure-keypair.pub")
-  }
-  network_interface_ids = [azurerm_network_interface.dml-network-interface.id]
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-focal"
-    sku       = "20_04-lts-gen2"
-    version   = "latest"
-  }
-
-  custom_data = filebase64("install.sh")
-  depends_on  = [azurerm_network_interface.dml-network-interface, azurerm_resource_group.myresource-group01]
-}
-
 
 # # Storage Account
 # resource "azurerm_storage_account" "appstorage1984" {
