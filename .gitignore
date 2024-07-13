@@ -37,6 +37,8 @@ override.tf.json
 terraform.rc
 azure-keypair.pub
 azure-keypair.pem
+east-us-keypair*
 backend.tf
 providers.tf
 maintfplan
+ubuntu-keypair*

@@ -26,7 +26,7 @@ variable "azurerm_client_secret" {
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default     = "myresource-group01"
+  default     = "andytech-resource-group01"
 }
 
 variable "resource_group_location" {
@@ -48,7 +48,7 @@ variable "virtual_network" {
     address_space = list(string)
   })
   default = {
-    name          = "dml-VirtualNetwork"
+    name          = "andytech-virtual-network"
     address_space = ["10.0.0.0/16"]
   }
 }
@@ -80,7 +80,7 @@ variable "private_subnet" {
 variable "my_ip_address" {
   description = "Your IP address with a /32 subnet mask"
   type        = string
-  default     = "146.85.137.76/32" # Replace with your actual IP address
+  default     = "146.85.136.101/32" # Replace with your actual IP address
 }
 
 # variable "subnets" {

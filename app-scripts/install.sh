@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo hostnamectl set-hostname jenkins-build-server
+sudo hostnamectl set-hostname jenkins-server
 
 sudo apt update -y
 sudo apt install wget curl fontconfig npm maven openjdk-11-jdk openjdk-17-jdk -y
