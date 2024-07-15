@@ -10,7 +10,7 @@ output "Private_Subnet_IP" {
 
 output "Jenkins_Server" {
   description = "The IP of the Jenkins Server."
-  value       = azurerm_linux_virtual_machine.build-server.public_ip_address
+  value       = azurerm_linux_virtual_machine.jenkins-server.public_ip_address
 }
 
 # output "Jenkins_Server" {
@@ -22,6 +22,6 @@ output "Jenkins_Server" {
 
 output "network_security_group_id" {
   description = "Network Security Group"
-  value       = azurerm_network_security_group.andytech-security-group.name
+  value       = azurerm_network_security_group.nzecruze-security-group.name
 }
 

@@ -1,31 +1,32 @@
 # Virtial network - VPC
-resource "azurerm_virtual_network" "andytech-virtual-network" {
+resource "azurerm_virtual_network" "nzecruze-virtual-network" {
   name                = var.virtual_network.name
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
   address_space       = var.virtual_network.address_space
   tags = {
-    environment = "Andytech-Virtual-Private-Network"
+    environment = "nzecruze-virtual-private-network"
   }
-  depends_on = [azurerm_resource_group.andytech-resource-group01]
+  depends_on = [azurerm_resource_group.nzecruze-resource-group]
 }
 
 # Public Subnet
 resource "azurerm_subnet" "public-subnet" {
   name                 = var.public_subnet.name
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.andytech-virtual-network.name
+  virtual_network_name = azurerm_virtual_network.nzecruze-virtual-network.name
   address_prefixes     = [var.public_subnet.address_prefix]
-  depends_on           = [azurerm_virtual_network.andytech-virtual-network]
+  #  service_endpoints = ["Microsoft.Storage"]
+  depends_on = [azurerm_virtual_network.nzecruze-virtual-network]
 }
 
 # Private Subnet
 resource "azurerm_subnet" "private-subnet" {
   name                 = var.private_subnet.name
   resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.andytech-virtual-network.name
+  virtual_network_name = azurerm_virtual_network.nzecruze-virtual-network.name
   address_prefixes     = [var.private_subnet.address_prefix]
-  depends_on           = [azurerm_virtual_network.andytech-virtual-network]
+  depends_on           = [azurerm_virtual_network.nzecruze-virtual-network]
 }
 
 # Public IP address
@@ -34,7 +35,7 @@ resource "azurerm_public_ip" "public-ip" {
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
   allocation_method   = "Dynamic"
-  depends_on          = [azurerm_virtual_network.andytech-virtual-network]
+  depends_on          = [azurerm_virtual_network.nzecruze-virtual-network]
 }
 
 /*
@@ -45,8 +46,8 @@ variable "azurerm_public_ip" {
 }
 */
 # Network interface
-resource "azurerm_network_interface" "andytech-network-interface" {
-  name                = "andytech-network-interface"
+resource "azurerm_network_interface" "nzecruze-network-interface" {
+  name                = "nzecruze-network-interface"
   location            = var.resource_group_location
   resource_group_name = var.resource_group_name
 
@@ -56,5 +57,5 @@ resource "azurerm_network_interface" "andytech-network-interface" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.public-ip.id
   }
-  depends_on = [azurerm_resource_group.andytech-resource-group01, azurerm_virtual_network.andytech-virtual-network, azurerm_subnet.public-subnet]
+  depends_on = [azurerm_resource_group.nzecruze-resource-group, azurerm_virtual_network.nzecruze-virtual-network, azurerm_subnet.public-subnet]
 }

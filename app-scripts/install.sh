@@ -54,7 +54,7 @@ sudo ./get_helm.sh
 helm version
 
 
-
+#### Installing Nexus and Sonar on Virtual Machines
 # # Update system and install dependencies
 # sudo apt update -y
 # sudo apt upgrade -y

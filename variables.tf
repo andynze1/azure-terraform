@@ -1,32 +1,9 @@
-variable "subscription_id" {
-  type        = string
-  description = "Azure subscription ID"
-}
 
-variable "tenant_id" {
-  type        = string
-  description = "Azure tenant ID"
-}
-
-variable "client_id" {
-  type        = string
-  description = "Azure client ID"
-}
-
-variable "client_secret" {
-  type        = string
-  description = "Azure client secret"
-}
-
-variable "azurerm_client_secret" {
-  type        = string
-  description = "Azure client secret"
-}
 
 variable "resource_group_name" {
   description = "Name of the resource group"
   type        = string
-  default     = "andytech-resource-group01"
+  default     = "nzecruze-resource-group"
 }
 
 variable "resource_group_location" {
@@ -48,7 +25,7 @@ variable "virtual_network" {
     address_space = list(string)
   })
   default = {
-    name          = "andytech-virtual-network"
+    name          = "nzecruze-virtual-network"
     address_space = ["10.0.0.0/16"]
   }
 }
@@ -83,6 +60,10 @@ variable "my_ip_address" {
   default     = "146.85.136.101/32" # Replace with your actual IP address
 }
 
+# variable "storage_account_name" {
+#   type = string
+#   description = "This is the prefix of the storage account name"
+# }
 # variable "subnets" {
 #   description = "Subnets configuration"
 #   type = list(object({

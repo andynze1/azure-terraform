@@ -1,6 +1,6 @@
 # Virtual Machine - EC2
-resource "azurerm_linux_virtual_machine" "build-server" {
-  name                = "build-server"
+resource "azurerm_linux_virtual_machine" "jenkins-server" {
+  name                = "jenkins-server"
   resource_group_name = var.resource_group_name
   location            = var.resource_group_location
   size                = "Standard_D2s_v3"
@@ -15,7 +15,7 @@ resource "azurerm_linux_virtual_machine" "build-server" {
   #   username   = "azure-user"
   #   public_key = file("east-us-keypair.pub")
   # }
-  network_interface_ids = [azurerm_network_interface.andytech-network-interface.id]
+  network_interface_ids = [azurerm_network_interface.nzecruze-network-interface.id]
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
@@ -26,14 +26,24 @@ resource "azurerm_linux_virtual_machine" "build-server" {
     sku       = "20_04-lts-gen2"
     version   = "latest"
   }
+  # bootstrap
+  # custom_data = base64encode(data.template_file.cloudinitdata.rendered)
   custom_data = filebase64("${path.module}/app-scripts/install.sh")
+
   depends_on = [
-    azurerm_network_interface.andytech-network-interface,
-    azurerm_resource_group.andytech-resource-group01,
+    azurerm_network_interface.nzecruze-network-interface,
+    azurerm_resource_group.nzecruze-resource-group,
     tls_private_key.ubuntu-keypair
   ]
+  tags = {
+    for name, value in local.common_tags : name => "${value}"
+  }
 }
 
+#bootstrap
+# data "template_file" "cloudinitdata" {
+#   template = file("app-scripts/install.sh")
+# }
 
 
 ## resource "azurerm_managed_disk" "jenkins_srv_disk" {
